@@ -1,11 +1,14 @@
 /* eslint-disable no-unused-vars */
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { useState, useFormState, useEffect } from 'react'
+import { useState, useFormState, useEffect, useLayoutEffect } from 'react'
 import axios from 'axios'
+import './App.css'
 
 export default function App(props) {
   var [listaGlobal, setListaGlobal] = useState([])
+  var [busca, setBusca] = useState('')
+  const lowerBusca = busca.toLowerCase()
 
   // FUNCAO ... faz a leitura e o tratamento
   async function get_an_URL(umaURL) {
@@ -50,6 +53,26 @@ export default function App(props) {
   }
 
   // os USEEFFECT
+
+  listaGlobal = listaGlobal
+    .filter((contactItem) => contactItem.message.contact.name !== null)
+    .filter((contactItem) => contactItem.message.contact.name !== '')
+    .filter((contactItem) => contactItem.message.contact.name !== undefined)
+    .filter((contactItem) =>
+      //contactItem.message.contact.name.toLowerCase() === lowerBusca,
+      contactItem.message.contact.name.toLowerCase().includes(lowerBusca),
+    )
+
+  // testes.message.contact.name === 'Eduardo Bento',
+
+  // useEffect(() => {
+  //   console.log(busca)
+  //   listaGlobal = listaGlobal.filter((testes) =>
+  //     testes.message.contact.name.toLowerCase().includes(lowerBusca),
+  //   )
+  //       //.filter((contact) => contact.title.toLowerCase().includes(lowerBusca))
+  // }, [busca])
+
   useEffect(async () => {
     const res = await get_an_URL('https://whatstv-api.herokuapp.com/logrobbu')
     console.log('useEffect')
@@ -58,22 +81,34 @@ export default function App(props) {
 
   // RETORNO DA PAGINA DO APP
   return (
-    <div>
-      <h3> Relatório </h3>
-      {listaGlobal.map((obj) => (
-        <>
-          <p>==============================</p>
-          <p>
-            Origem: {obj.message.contact.name}
-            &nbsp;Tipo: {obj.message.direction}
-            &nbsp; Pais: {obj.message.source.countryCode}
-            &nbsp; Texto: {obj.message.text}
-          </p>
-          {/*<p>{obj.message.direction}</p>*/}
-        </>
-      ))}
+    <div className="main">
+      <header className="logHeader">
+        <h1> Relatório </h1>
+        <div className="logFilter">
+          <input
+            type="search"
+            placeholder="Nome"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+      </header>
+      <div className="content">
+        {listaGlobal.map((obj) => (
+          <div className="item">
+            <p>Origem: {obj.message.contact.name}</p>
+            <p>
+              Telefone: {obj.message.contact.mainWhatsapp.countryCode}
+              {obj.message.contact.mainWhatsapp.phoneNumber}
+            </p>
+            <p>Tipo: {obj.message.direction} </p>
+            <p>Data-Hora: {obj.message.receivedAt}</p>
+            <p>Texto: {obj.message.text}</p>
+          </div>
+        ))}
 
-      {<p>Total: {listaGlobal.length}</p>}
+        {<p>Total: {listaGlobal.length}</p>}
+      </div>
     </div>
   )
 }
